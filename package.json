@@ -1,9 +1,26 @@
 {
   "name": "github-agent",
   "version": "1.0.0",
-  "private": true,
-  "description": "本地项目一键上传到 GitHub 仓库的可视化 Agent（零第三方依赖）",
+  "description": "本地项目一键上传到 GitHub 仓库的可视化工具（零第三方依赖）",
   "main": "server.js",
+  "license": "MIT",
+  "author": "PassionCR7",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PassionCR7/github-upload-agent.git"
+  },
+  "homepage": "https://github.com/PassionCR7/github-upload-agent#readme",
+  "bugs": {
+    "url": "https://github.com/PassionCR7/github-upload-agent/issues"
+  },
+  "keywords": [
+    "github",
+    "upload",
+    "git",
+    "web-ui",
+    "zero-dependency",
+    "local-tool"
+  ],
   "scripts": {
     "start": "node server.js",
     "test": "node test/github-mock-test.js",
