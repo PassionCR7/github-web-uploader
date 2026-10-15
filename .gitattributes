@@ -1,0 +1,31 @@
+# 统一换行符：仓库内一律存 LF，避免不同系统下出现"整个文件都改了"的假 diff
+#
+# 背景：Windows 的 git 若开了 core.autocrlf=true，会把文件以 CRLF 存入仓库。
+# Linux/macOS 用户 clone 后，git 会认为每个文件都被修改过。
+# 用 .gitattributes 显式声明，可让所有平台的行为一致。
+
+* text=auto eol=lf
+
+# 明确指定为文本、强制 LF
+*.js    text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+
+# Windows 批处理需要 CRLF 才能正常执行
+*.bat   text eol=crlf
+*.cmd   text eol=crlf
+
+# 二进制文件不做换行符转换
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.pdf   binary
+*.zip   binary
+*.woff  binary
+*.woff2 binary
