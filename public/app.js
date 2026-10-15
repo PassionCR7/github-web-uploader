@@ -1,5 +1,5 @@
 /* =====================================================================
-   GitHub 上传 Agent — 前端逻辑
+   GitHub 上传器 — 前端逻辑
    纯原生 JS，无构建步骤。所有 GitHub 请求都由本机 Node 服务代理转发，
    令牌通过 X-GitHub-Token 请求头传递，只存在于内存（可选存 localStorage）。
    ===================================================================== */
@@ -27,8 +27,8 @@ const state = {
   uploading: false,
 };
 
-const LS_TOKEN_KEY = 'github-agent.token';
-const SS_HISTORY_KEY = 'github-agent.history';
+const LS_TOKEN_KEY = 'github-web-uploader.token';
+const SS_HISTORY_KEY = 'github-web-uploader.history';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -990,7 +990,7 @@ async function doUpload() {
           name,
           owner: target.owner,
           privateRepo: $('#new-repo-private').checked,
-          description: `${name} — 由本地 GitHub 上传 Agent 创建`,
+          description: `${name} — 由本地 GitHub 上传器 创建`,
         },
       });
       toast(`仓库 ${data.repo.fullName} 创建成功`, 'success');
@@ -1329,7 +1329,7 @@ async function init() {
   } catch { /* 忽略 */ }
 
   updateSelectionSummary();
-  console.log('GitHub 上传 Agent 已就绪');
+  console.log('GitHub 上传器 已就绪');
 }
 
 document.addEventListener('DOMContentLoaded', init);

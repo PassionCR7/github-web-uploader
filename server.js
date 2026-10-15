@@ -1,6 +1,6 @@
 'use strict';
 /**
- * server.js — 本地 GitHub 上传 Agent 的服务端（零第三方依赖）
+ * server.js — 本地 GitHub 上传器 的服务端（零第三方依赖）
  *
  * 只用 Node 内置模块，任何人 clone 下来 `node server.js` 就能跑，不需要 npm install。
  *
@@ -36,7 +36,7 @@ const ARGS = parseArgs(process.argv.slice(2));
 
 if (ARGS.help) {
   console.log(`
-本地 GitHub 上传 Agent
+本地 GitHub 上传器
 
 用法:
   node server.js [选项]
@@ -156,7 +156,7 @@ const routes = {
   'GET /api/health': async () => ({
     ok: true,
     data: {
-      service: 'github-agent',
+      service: 'github-web-uploader',
       node: process.version,
       platform: process.platform,
       restrictedRoots: ARGS.roots.length ? ARGS.roots : null,
@@ -369,7 +369,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(ARGS.port, ARGS.host, () => {
   const banner = `
   ┌──────────────────────────────────────────────┐
-  │   本地 GitHub 上传 Agent 已启动              │
+  │   本地 GitHub 上传器 已启动              │
   └──────────────────────────────────────────────┘
 
   打开浏览器访问：  http://${ARGS.host}:${ARGS.port}

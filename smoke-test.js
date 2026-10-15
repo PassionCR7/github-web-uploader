@@ -43,7 +43,7 @@ async function call(path, { method = 'GET', body, token } = {}) {
   console.log('[1] 健康检查');
   const health = await call('/api/health');
   report('GET /api/health 返回 200', health.status === 200, `HTTP ${health.status}`);
-  report('service 字段正确', health.json && health.json.data.service === 'github-agent');
+  report('service 字段正确', health.json && health.json.data.service === 'github-web-uploader');
   report('返回 node 版本', !!(health.json && health.json.data.node),
     health.json && health.json.data.node);
 
@@ -85,7 +85,7 @@ async function call(path, { method = 'GET', body, token } = {}) {
     blocked, `HTTP ${traversal.status}`);
 
   const staticEscape = await call('/../package.json');
-  report('静态资源穿越被拦截', staticEscape.status !== 200 || !staticEscape.text.includes('github-agent'),
+  report('静态资源穿越被拦截', staticEscape.status !== 200 || !staticEscape.text.includes('github-web-uploader'),
     `HTTP ${staticEscape.status}`);
 
   /* ---------- 5. 扫描 ---------- */

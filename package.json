@@ -1,5 +1,5 @@
 {
-  "name": "github-agent",
+  "name": "github-web-uploader",
   "version": "1.0.0",
   "description": "本地项目一键上传到 GitHub 仓库的可视化工具（零第三方依赖）",
   "main": "server.js",
@@ -7,11 +7,11 @@
   "author": "PassionCR7",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/PassionCR7/github-upload-agent.git"
+    "url": "git+https://github.com/PassionCR7/github-web-uploader.git"
   },
-  "homepage": "https://github.com/PassionCR7/github-upload-agent#readme",
+  "homepage": "https://github.com/PassionCR7/github-web-uploader#readme",
   "bugs": {
-    "url": "https://github.com/PassionCR7/github-upload-agent/issues"
+    "url": "https://github.com/PassionCR7/github-web-uploader/issues"
   },
   "keywords": [
     "github",

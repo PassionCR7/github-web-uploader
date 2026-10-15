@@ -190,7 +190,7 @@ async function handler(req, res) {
 
 (async () => {
   // 准备一个临时项目目录，放几个待上传文件
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gh-agent-test-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'gwu-test-'));
   fs.writeFileSync(path.join(tmp, 'README.md'), '# Hello\n');
   fs.mkdirSync(path.join(tmp, 'src'));
   fs.writeFileSync(path.join(tmp, 'src', 'index.js'), 'console.log(1);\n');

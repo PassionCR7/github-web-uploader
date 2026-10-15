@@ -1,4 +1,4 @@
-# GitHub 上传 Agent
+# GitHub 上传器
 
 一个跑在**你自己电脑上**的小工具：用网页界面登录你的 GitHub，挑一个本地项目文件夹，勾选要上传的文件，一键提交到指定仓库；如果传错了，可以**撤回**。
 
@@ -13,7 +13,7 @@
 ## 快速开始
 
 ```bash
-cd githubAgent
+cd github-web-uploader
 node server.js
 ```
 
@@ -103,7 +103,7 @@ GitHub 的 REST API **没有 revert 端点**，所以这里给了两种语义明
 ## 目录结构
 
 ```
-githubAgent/
+github-web-uploader/
 ├── server.js                 服务入口：静态托管 + API 路由（零依赖）
 ├── package.json
 ├── start.bat                 Windows 一键启动

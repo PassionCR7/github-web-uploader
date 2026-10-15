@@ -14,7 +14,7 @@
  * 夹具刻意放在「中性路径」下（见 pickNeutralRoot），而不是项目目录里。
  * 原因：界面会把项目根路径原样渲染出来，而本脚本会截图——若夹具位于项目目录内，
  * 截图就会把使用者本机的真实路径（用户名、目录层级）永久画进图片。
- * 需要自定义位置时用 --demo-root <目录>，或环境变量 GH_AGENT_DEMO_ROOT。
+ * 需要自定义位置时用 --demo-root <目录>，或环境变量 GWU_DEMO_ROOT。
  */
 
 const { spawn } = require('child_process');
@@ -33,15 +33,15 @@ const PORT = 9222;
 const TARGET_URL = 'http://127.0.0.1:5178/';
 const ROOT_DIR = path.join(__dirname, '..');
 const OUT_DIR = path.join(ROOT_DIR, '.shots');
-const PROFILE = path.join(os.tmpdir(), 'gh-agent-chrome-profile');
+const PROFILE = path.join(os.tmpdir(), 'gwu-chrome-profile');
 
 /**
  * 选一个「中性」的根目录放测试夹具。
  *
  * 为什么不能放在项目目录下：界面会把项目根路径完整显示出来，而本脚本要截图，
- * 于是 `D:\Users\你的名字\...\githubAgent` 这种路径就被画进图片了。
- * 放在盘符根目录下的固定名字（如 `D:\gh-agent-demo-<时间戳>`）不含任何个人信息，
- * 截图里只会看到 `D:\gh-agent-demo-...`。
+ * 于是 `D:\Users\你的名字\...\github-web-uploader` 这种路径就被画进图片了。
+ * 放在盘符根目录下的固定名字（如 `D:\gwu-demo-<时间戳>`）不含任何个人信息，
+ * 截图里只会看到 `D:\gwu-demo-...`。
  *
  * 优先级：命令行 --demo-root > 环境变量 > 盘符根目录 > 系统临时目录。
  */
@@ -49,13 +49,13 @@ function pickNeutralRoot() {
   const argv = process.argv.slice(2);
   const argIdx = argv.findIndex((a) => a === '--demo-root');
   if (argIdx >= 0 && argv[argIdx + 1]) return path.resolve(argv[argIdx + 1]);
-  if (process.env.GH_AGENT_DEMO_ROOT) return path.resolve(process.env.GH_AGENT_DEMO_ROOT);
+  if (process.env.GWU_DEMO_ROOT) return path.resolve(process.env.GWU_DEMO_ROOT);
 
   if (process.platform === 'win32') {
     // 找一个可写的盘符，用固定的中性名字，避免写入用户目录
     for (const letter of 'CDEFGHIJ'.split('')) {
       const base = `${letter}:\\`;
-      const candidate = path.join(base, `gh-agent-demo-${process.pid}`);
+      const candidate = path.join(base, `gwu-demo-${process.pid}`);
       try {
         fs.mkdirSync(candidate, { recursive: true });
         return candidate;
@@ -63,7 +63,7 @@ function pickNeutralRoot() {
     }
   }
   // 兜底：系统临时目录（路径里通常也不含用户名，Linux 下为 /tmp）
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'gh-agent-demo-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'gwu-demo-'));
 }
 
 const TEST_PROJECT = path.join(pickNeutralRoot(), 'sample-project');
@@ -272,7 +272,7 @@ async function waitForDevTools(retries = 60) {
 
     /* ---------- 1. 初始状态 ---------- */
     console.log('[1] 页面初始状态');
-    check('标题正确', (await cdp.evaluate('document.title')) === 'GitHub 上传 Agent');
+    check('标题正确', (await cdp.evaluate('document.title')) === 'GitHub 上传器');
     check('渲染出 5 个步骤面板',
       (await cdp.evaluate("document.querySelectorAll('.panel').length")) === 5);
     check('未登录时后 3 步锁定（第 2 步浏览本地文件已解锁）',

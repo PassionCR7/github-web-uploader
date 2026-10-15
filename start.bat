@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 >nul
-title GitHub 上传 Agent
+title GitHub 上传器
 cd /d "%~dp0"
 
 echo.
-echo   正在启动 GitHub 上传 Agent...
+echo   正在启动 GitHub 上传器...
 echo.
 
 where node >nul 2>nul
