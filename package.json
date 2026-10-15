@@ -1,0 +1,16 @@
+{
+  "name": "github-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "本地项目一键上传到 GitHub 仓库的可视化 Agent（零第三方依赖）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/github-mock-test.js",
+    "test:api": "node smoke-test.js",
+    "test:ui": "node test/ui-shot.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

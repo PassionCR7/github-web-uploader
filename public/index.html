@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitHub 上传 Agent</title>
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">GH</span>
+      <div>
+        <h1>GitHub 上传 Agent</h1>
+        <p class="brand-sub">把本地项目文件夹按需上传到你的仓库，传错了可以撤回</p>
+      </div>
+    </div>
+    <div class="account" id="account-area">
+      <span class="dot dot-idle"></span>
+      <span class="account-text">未登录</span>
+    </div>
+  </header>
+
+  <main class="layout">
+
+    <!-- ① 登录 -->
+    <section class="panel" id="panel-auth">
+      <div class="panel-head">
+        <span class="step-badge">1</span>
+        <h2>登录 GitHub</h2>
+        <span class="toggle-hint" data-toggle="auth">收起</span>
+      </div>
+      <div class="panel-body" data-body="auth">
+
+        <div class="tabs">
+          <button class="tab active" data-tab="pat">访问令牌（推荐）</button>
+          <button class="tab" data-tab="device">设备码登录</button>
+        </div>
+
+        <div class="tabpane" data-pane="pat">
+          <p class="hint">
+            到 GitHub 的 <code>Settings → Developer settings → Personal access tokens</code>
+            生成一个带 <code>repo</code> 权限的令牌。<strong>令牌只保存在浏览器内存里</strong>，
+            不会写入磁盘，也不会出现在服务端日志中。
+          </p>
+          <div class="row">
+            <input id="pat-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxx 或 github_pat_xxx" autocomplete="off" />
+            <button class="btn btn-primary" id="pat-connect">连接</button>
+          </div>
+          <label class="check-inline">
+            <input type="checkbox" id="remember-token" />
+            <span>在本机浏览器记住令牌（下次自动填充，仅存于 localStorage，公共电脑请勿勾选）</span>
+          </label>
+          <div class="quick-links">
+            <a href="https://github.com/settings/tokens/new?scopes=repo&description=Local%20Upload%20Agent" target="_blank" rel="noreferrer">→ 新建令牌（自动勾选 repo 权限）</a>
+          </div>
+        </div>
+
+        <div class="tabpane hidden" data-pane="device">
+          <p class="hint">
+            设备码登录更安全：你会在 GitHub 官方页面上确认，令牌由服务端换取后仅回传给你。需要先创建一个
+            OAuth App 并勾选 <code>Enable Device Flow</code>，把它的 Client ID 填进来。
+          </p>
+          <div class="row">
+            <input id="client-id" placeholder="OAuth App 的 Client ID，例如 Ov23liXXXXXXXXXX" autocomplete="off" />
+            <button class="btn btn-primary" id="device-start">获取设备码</button>
+          </div>
+          <div class="device-box hidden" id="device-box">
+            <p class="device-code" id="device-code">----</p>
+            <p class="hint">
+              在 GitHub 页面输入上面的代码完成授权：
+              <a id="device-link" href="https://github.com/login/device" target="_blank" rel="noreferrer">github.com/login/device</a>
+            </p>
+            <p class="hint device-status" id="device-status">等待授权中…</p>
+            <button class="btn btn-ghost btn-sm" id="device-cancel">取消</button>
+          </div>
+        </div>
+
+        <div class="alert hidden" id="auth-alert"></div>
+      </div>
+    </section>
+
+    <!-- ② 选项目文件夹（浏览本地文件不需要登录，因此默认解锁） -->
+    <section class="panel" id="panel-project">
+      <div class="panel-head">
+        <span class="step-badge">2</span>
+        <h2>选择要上传的项目文件夹</h2>
+        <span class="toggle-hint" data-toggle="project">收起</span>
+      </div>
+      <div class="panel-body" data-body="project">
+        <div class="folder-picked hidden" id="folder-picked">
+          <div class="picked-path">
+            <span class="picked-label">已选项目根目录</span>
+            <code id="project-root-text">—</code>
+          </div>
+          <div class="picked-actions">
+            <button class="btn btn-ghost btn-sm" id="btn-rescan">重新扫描</button>
+            <button class="btn btn-ghost btn-sm" id="btn-repick">改选目录</button>
+          </div>
+        </div>
+        <div class="empty-state" id="folder-empty">
+          <p>还没选择项目目录。点击下面的按钮浏览本机文件夹。</p>
+          <button class="btn btn-primary" id="btn-browse">浏览本机文件夹</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ③ 选文件 -->
+    <section class="panel locked" id="panel-files">
+      <div class="panel-head">
+        <span class="step-badge">3</span>
+        <h2 data-lock-hint="需先选择项目目录">勾选要上传的文件</h2>
+        <span class="toggle-hint" data-toggle="files">收起</span>
+      </div>
+      <div class="panel-body" data-body="files">
+
+        <div class="tree-toolbar">
+          <input id="file-search" class="search" placeholder="按文件名过滤…" />
+          <div class="tree-actions">
+            <button class="btn btn-ghost btn-sm" id="btn-select-all">全选</button>
+            <button class="btn btn-ghost btn-sm" id="btn-select-invert">反选</button>
+            <button class="btn btn-ghost btn-sm" id="btn-select-none">清空</button>
+            <button class="btn btn-ghost btn-sm" id="btn-expand-all">展开全部</button>
+          </div>
+        </div>
+
+        <div class="stats-bar" id="scan-stats">尚未扫描</div>
+
+        <div class="tree-wrap" id="tree-wrap">
+          <div class="empty-state small"><p>选择项目目录后，这里会列出文件树。</p></div>
+        </div>
+
+        <details class="ignore-box">
+          <summary>忽略规则设置（默认跳过 .git / node_modules / dist 等）</summary>
+          <p class="hint">每行一条。支持目录名（<code>node_modules</code>）、通配后缀（<code>*.log</code>）、精确文件名（<code>.env</code>）。</p>
+          <textarea id="ignore-input" rows="5"></textarea>
+          <button class="btn btn-ghost btn-sm" id="btn-apply-ignore">应用并重新扫描</button>
+        </details>
+
+        <div class="selection-summary" id="selection-summary">
+          已选 <strong id="sel-count">0</strong> 个文件，合计 <strong id="sel-size">0 B</strong>
+        </div>
+      </div>
+    </section>
+
+    <!-- ④ 目标仓库与上传 -->
+    <section class="panel locked" id="panel-target">
+      <div class="panel-head">
+        <span class="step-badge">4</span>
+        <h2 data-lock-hint="需先登录 GitHub">目标仓库并上传</h2>
+        <span class="toggle-hint" data-toggle="target">收起</span>
+      </div>
+      <div class="panel-body" data-body="target">
+
+        <div class="field">
+          <label class="check-inline">
+            <input type="radio" name="repo-mode" value="existing" checked />
+            <span>上传到已有仓库</span>
+          </label>
+          <div class="row">
+            <select id="repo-select">
+              <option value="">先完成第 1 步登录…</option>
+            </select>
+            <button class="btn btn-ghost btn-sm" id="btn-reload-repos">刷新列表</button>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="check-inline">
+            <input type="radio" name="repo-mode" value="new" />
+            <span>新建仓库后上传</span>
+          </label>
+          <div class="row hidden" id="new-repo-row">
+            <input id="new-repo-name" placeholder="仓库名，例如 my-project" />
+            <label class="check-inline nowrap">
+              <input type="checkbox" id="new-repo-private" checked />
+              <span>私有</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="branch-input">目标分支</label>
+            <input id="branch-input" placeholder="留空则用仓库默认分支" />
+          </div>
+          <div class="field">
+            <label for="commit-message">提交说明</label>
+            <input id="commit-message" placeholder="例如：初始化项目" />
+          </div>
+        </div>
+
+        <label class="check-inline">
+          <input type="checkbox" id="overwrite-check" checked />
+          <span>允许覆盖远端同名文件（取消勾选后，若存在同名文件会直接中止上传）</span>
+        </label>
+
+        <div class="upload-bar">
+          <button class="btn btn-primary btn-lg" id="btn-upload" disabled>开始上传</button>
+          <div class="progress-wrap hidden" id="progress-wrap">
+            <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+            <p class="progress-text" id="progress-text">准备中…</p>
+          </div>
+        </div>
+
+        <div class="alert hidden" id="upload-alert"></div>
+      </div>
+    </section>
+
+    <!-- ⑤ 上传历史与撤回 -->
+    <section class="panel locked" id="panel-history">
+      <div class="panel-head">
+        <span class="step-badge">5</span>
+        <h2 data-lock-hint="需先登录 GitHub">上传记录与撤回</h2>
+        <span class="toggle-hint" data-toggle="history">收起</span>
+      </div>
+      <div class="panel-body" data-body="history">
+
+        <div class="row">
+          <button class="btn btn-ghost btn-sm" id="btn-load-history" disabled>读取该仓库最近提交</button>
+          <span class="hint inline" id="history-target">尚未选择仓库</span>
+        </div>
+
+        <div class="revert-mode">
+          <span class="hint inline">撤回方式：</span>
+          <label class="check-inline nowrap">
+            <input type="radio" name="revert-mode" value="safe" checked />
+            <span>安全撤回（新增一个反向提交，历史保留）</span>
+          </label>
+          <label class="check-inline nowrap">
+            <input type="radio" name="revert-mode" value="force" />
+            <span>强制回退（分支指针拨回，抹掉该提交）</span>
+          </label>
+        </div>
+        <p class="hint">
+          这里列出的是<strong>本会话中你通过本工具上传的提交</strong>，以及仓库最近的提交历史。
+          只有本工具产生的提交才会出现在"可撤回"区域。
+        </p>
+
+        <div class="history-list" id="history-list">
+          <div class="empty-state small"><p>还没有上传记录。</p></div>
+        </div>
+
+        <div class="alert hidden" id="history-alert"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <span>服务仅监听本机 127.0.0.1 · 令牌不落盘 · 由本机 Node 进程直接调用 GitHub API</span>
+  </footer>
+</div>
+
+<!-- 文件夹浏览弹窗 -->
+<div class="modal hidden" id="modal-folder">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>浏览本机文件夹</h3>
+      <button class="icon-btn" id="modal-close" aria-label="关闭">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="crumbs" id="crumbs"></div>
+      <div class="shortcuts" id="shortcuts"></div>
+      <div class="listing" id="listing"></div>
+    </div>
+    <div class="modal-foot">
+      <label class="check-inline">
+        <input type="checkbox" id="pick-subfolder" />
+        <span>进入子文件夹后，选中它作为项目根目录</span>
+      </label>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="pick-cancel">取消</button>
+        <button class="btn btn-primary" id="pick-confirm">使用当前目录</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script src="/app.js"></script>
+</body>
+</html>
